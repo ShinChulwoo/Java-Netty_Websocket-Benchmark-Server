@@ -13,7 +13,7 @@ ADD .	/home/websocket
 # Update and install dependencies
 RUN apt-get -y update \
     && apt-get -y upgrade \
-    && apt-get -y install openjdk-8-jdk wget unzip
+    && apt-get -y install openjdk-11-jdk wget unzip
 
 # Install Gradle
 RUN wget https://services.gradle.org/distributions/gradle-5.0-bin.zip -P /tmp \
