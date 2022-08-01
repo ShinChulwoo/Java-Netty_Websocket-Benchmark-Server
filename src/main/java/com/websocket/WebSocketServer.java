@@ -9,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 
 public final class WebSocketServer {
 
@@ -35,8 +37,14 @@ public final class WebSocketServer {
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
       ChannelPipeline pipeline = ch.pipeline();
-      pipeline.addLast("httpServerCodec", new HttpServerCodec());
-      pipeline.addLast("httphandler", new HttpServerHandler());
+//      pipeline.addLast("httpServerCodec", new HttpServerCodec());
+//      pipeline.addLast("httphandler", new HttpServerHandler());
+
+      pipeline.addLast(new HttpServerCodec());
+//      pipeline.addLast(new HttpObjectAggregator(65536));
+      pipeline.addLast(new WebSocketServerCompressionHandler());
+      pipeline.addLast(new WebSocketServerProtocolHandler("/", null, true));
+      pipeline.addLast(new WebSocketHandler());
     }
   }
 }
