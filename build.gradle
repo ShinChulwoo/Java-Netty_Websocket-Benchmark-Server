@@ -11,8 +11,8 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
     implementation 'io.netty:netty-all:4.1.79.Final'
-    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
 }
 

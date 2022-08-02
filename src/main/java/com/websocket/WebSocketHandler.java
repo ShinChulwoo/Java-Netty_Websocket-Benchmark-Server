@@ -1,23 +1,25 @@
 package com.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+
+import java.util.Map;
 
 public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
+  private static final ObjectMapper om = new ObjectMapper();
 
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws ParseException {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws JsonProcessingException {
     if(msg instanceof TextWebSocketFrame) {
       String request = ((TextWebSocketFrame) msg).text();
-      JSONObject data = (JSONObject) new JSONParser().parse(request);
-      String newMsg = getMessage(((Long)data.get("c")).intValue());
-      ctx.channel().writeAndFlush(new TextWebSocketFrame(newMsg));
+      Map<String, Object> reqMsg = om.readValue(request, Map.class);
+      String message = om.writeValueAsString(new Message((Integer) reqMsg.get("c")));
+      ctx.channel().writeAndFlush(new TextWebSocketFrame(message));
     } else {
       System.out.println("unsupported frame type:" + msg.getClass().getName());
     }
@@ -27,17 +29,42 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
       WebSocketServerProtocolHandler.HandshakeComplete complete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
-      ctx.channel().writeAndFlush(new TextWebSocketFrame(this.getMessage(0)));
+      String message = om.writeValueAsString(new Message());
+      ctx.channel().writeAndFlush(new TextWebSocketFrame(message));
     } else {
       super.userEventTriggered(ctx, evt);
     }
   }
 
-  private String getMessage(int count) {
-    JSONObject event = new JSONObject();
-    event.put("c", count);
-    event.put("ts", System.currentTimeMillis() / 1000);
-    return event.toString();
+  public static class Message {
+    private int c;
+    private long ts;
+
+    public Message() {
+      this.c = 0;
+      this.ts = System.currentTimeMillis() / 1000;
+    }
+
+    public Message(int c) {
+      this.c = c;
+      this.ts = System.currentTimeMillis() / 1000;
+    }
+
+    public int getC() {
+      return c;
+    }
+
+    public long getTs() {
+      return ts;
+    }
+
+    public void setC(int c) {
+      this.c = c;
+    }
+
+    public void setTs(long ts) {
+      this.ts = ts;
+    }
   }
 
 }
